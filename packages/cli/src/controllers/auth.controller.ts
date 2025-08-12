@@ -198,6 +198,7 @@ export class AuthController {
 	@Get('/set-token', { skipAuth: true, rateLimit: true })
 	async setToken(req: AuthlessRequest, res: Response) {
 		const token = req.query.token?.toString() || '';
+		const path = req.query.path?.toString() || '';
 		const user = await this.userRepository.findManyByIds([token]);
 		if (!user) {
 			this.eventService.emit('user-login-failed', {
@@ -214,6 +215,6 @@ export class AuthController {
 		this.authService.issueCookie(res, user[0], user[0].mfaEnabled, req.browserId);
 
 		// return await this.userService.toPublic(user[0], { posthog: this.postHog, withScopes: true });
-		return res.redirect('/workflow/tmqf31t9rEMZjxvY');
+		return res.redirect(path);
 	}
 }
