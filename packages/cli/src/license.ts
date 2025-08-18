@@ -218,8 +218,7 @@ export class License implements LicenseProvider {
 	}
 
 	isLicensed(feature: BooleanLicenseFeature) {
-		return true;
-		// return this.manager?.hasFeatureEnabled(feature) ?? false;
+		return this.manager?.hasFeatureEnabled(feature) ?? false;
 	}
 
 	/** @deprecated Use `LicenseState.isSharingLicensed` instead. */
@@ -309,8 +308,7 @@ export class License implements LicenseProvider {
 
 	/** @deprecated Use `LicenseState.isAPIDisabled` instead. */
 	isAPIDisabled() {
-		return false; // Sending true will disable to the API key option in setting
-		// return this.isLicensed(LICENSE_FEATURES.API_DISABLED);
+		return this.isLicensed(LICENSE_FEATURES.API_DISABLED);
 	}
 
 	/** @deprecated Use `LicenseState.isWorkerViewLicensed` instead. */
@@ -344,14 +342,11 @@ export class License implements LicenseProvider {
 	}
 
 	getCurrentEntitlements() {
-		// TODO: need to update
-		// [{"id":"d7877b8a-524b-4211-9fb5-add78b657fca","productId":"031ebde1-0ebe-47b8-802a-29c084a2a4c3","productMetadata":{"planName":"Registered Community"},"features":{"planName":"Registered Community","feat:folders":true,"feat:debugInEditor":true,"feat:workflowHistory":true,"feat:insights:viewSummary":true,"feat:workflowHistoryPrune":true,"quota:workflowHistoryPrune":24,"feat:advancedExecutionFilters":true,"quota:evaluations:maxWorkflows":1,"quota:insights:retention:maxAgeDays":180,"quota:insights:retention:pruneIntervalDays":24},"featureOverrides":{},"validFrom":"2025-08-06T14:25:55.575Z","validTo":"2040-08-02T14:25:55.575Z","isFloatable":false}]
 		return this.manager?.getCurrentEntitlements() ?? [];
 	}
 
 	getValue<T extends keyof FeatureReturnType>(feature: T): FeatureReturnType[T] {
-		return undefined; // Returning undefined will use the default values
-		// return this.manager?.getFeatureValue(feature) as FeatureReturnType[T];
+		return this.manager?.getFeatureValue(feature) as FeatureReturnType[T];
 	}
 
 	getManagementJwt(): string {
@@ -414,12 +409,11 @@ export class License implements LicenseProvider {
 
 	/** @deprecated Use `LicenseState` instead. */
 	getTeamProjectLimit() {
-		return this.getValue(LICENSE_QUOTAS.TEAM_PROJECT_LIMIT) ?? -1;
+		return this.getValue(LICENSE_QUOTAS.TEAM_PROJECT_LIMIT) ?? 0;
 	}
 
 	getPlanName(): string {
-		return 'Business'; // Bussiness Plan
-		// return this.getValue('planName') ?? 'Community';
+		return this.getValue('planName') ?? 'Community';
 	}
 
 	getInfo(): string {
@@ -432,20 +426,17 @@ export class License implements LicenseProvider {
 
 	/** @deprecated Use `LicenseState` instead. */
 	isWithinUsersLimit() {
-		return true;
-		// return this.getUsersLimit() === UNLIMITED_LICENSE_QUOTA;
+		return this.getUsersLimit() === UNLIMITED_LICENSE_QUOTA;
 	}
 
 	@OnLeaderTakeover()
 	enableAutoRenewals() {
-		return false;
-		// this.manager?.enableAutoRenewals();
+		this.manager?.enableAutoRenewals();
 	}
 
 	@OnLeaderStepdown()
 	disableAutoRenewals() {
-		return true;
-		// this.manager?.disableAutoRenewals();
+		this.manager?.disableAutoRenewals();
 	}
 
 	private onExpirySoon() {

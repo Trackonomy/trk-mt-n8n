@@ -13,7 +13,7 @@ export type UsageTelemetry = {
 	quota: number;
 };
 
-const DEFAULT_PLAN_NAME = 'Business';
+const DEFAULT_PLAN_NAME = 'Community';
 const DEFAULT_STATE: UsageState = {
 	loading: true,
 	data: {
