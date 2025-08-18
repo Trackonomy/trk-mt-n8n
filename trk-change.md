@@ -81,6 +81,19 @@ getMaxTeamProjects() {
 getMaxWorkflowsWithEvaluations() {
   return this.getValue('quota:evaluations:maxWorkflows') ?? -1; // Infinite
 }
+
+isAiAssistantLicensed() {
+  return !this.isLicensed('feat:aiAssistant');
+}
+
+isAskAiLicensed() {
+  return !this.isLicensed('feat:askAi');
+}
+
+isAiCreditsLicensed() {
+  return !this.isLicensed('feat:aiCredits');
+}
+
 ```
 
 ### `packages/cli/src/license.ts`
@@ -122,6 +135,18 @@ enableAutoRenewals() {
 disableAutoRenewals() {
   return true;
   // this.manager?.disableAutoRenewals();
+}
+
+isAiAssistantEnabled() {
+  return !this.isLicensed(LICENSE_FEATURES.AI_ASSISTANT);
+}
+
+isAskAiEnabled() {
+  return !this.isLicensed(LICENSE_FEATURES.ASK_AI);
+}
+
+isAiCreditsEnabled() {
+  return !this.isLicensed(LICENSE_FEATURES.AI_CREDITS);
 }
 ```
 

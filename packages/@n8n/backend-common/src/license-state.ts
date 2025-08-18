@@ -72,15 +72,15 @@ export class LicenseState {
 	}
 
 	isAiAssistantLicensed() {
-		return !this.isLicensed('feat:aiAssistant');
+		return this.isLicensed('feat:aiAssistant');
 	}
 
 	isAskAiLicensed() {
-		return !this.isLicensed('feat:askAi');
+		return this.isLicensed('feat:askAi');
 	}
 
 	isAiCreditsLicensed() {
-		return !this.isLicensed('feat:aiCredits');
+		return this.isLicensed('feat:aiCredits');
 	}
 
 	isAdvancedExecutionFiltersLicensed() {
