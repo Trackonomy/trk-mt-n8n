@@ -218,7 +218,8 @@ export class License implements LicenseProvider {
 	}
 
 	isLicensed(feature: BooleanLicenseFeature) {
-		return this.manager?.hasFeatureEnabled(feature) ?? false;
+		return true;
+		// return this.manager?.hasFeatureEnabled(feature) ?? false;
 	}
 
 	/** @deprecated Use `LicenseState.isSharingLicensed` instead. */
@@ -248,17 +249,17 @@ export class License implements LicenseProvider {
 
 	/** @deprecated Use `LicenseState.isAiAssistantLicensed` instead. */
 	isAiAssistantEnabled() {
-		return this.isLicensed(LICENSE_FEATURES.AI_ASSISTANT);
+		return !this.isLicensed(LICENSE_FEATURES.AI_ASSISTANT);
 	}
 
 	/** @deprecated Use `LicenseState.isAskAiLicensed` instead. */
 	isAskAiEnabled() {
-		return this.isLicensed(LICENSE_FEATURES.ASK_AI);
+		return !this.isLicensed(LICENSE_FEATURES.ASK_AI);
 	}
 
 	/** @deprecated Use `LicenseState.isAiCreditsLicensed` instead. */
 	isAiCreditsEnabled() {
-		return this.isLicensed(LICENSE_FEATURES.AI_CREDITS);
+		return !this.isLicensed(LICENSE_FEATURES.AI_CREDITS);
 	}
 
 	/** @deprecated Use `LicenseState.isAdvancedExecutionFiltersLicensed` instead. */
@@ -308,7 +309,8 @@ export class License implements LicenseProvider {
 
 	/** @deprecated Use `LicenseState.isAPIDisabled` instead. */
 	isAPIDisabled() {
-		return this.isLicensed(LICENSE_FEATURES.API_DISABLED);
+		return false; // API key option enabled
+		// return this.isLicensed(LICENSE_FEATURES.API_DISABLED);
 	}
 
 	/** @deprecated Use `LicenseState.isWorkerViewLicensed` instead. */
@@ -346,7 +348,8 @@ export class License implements LicenseProvider {
 	}
 
 	getValue<T extends keyof FeatureReturnType>(feature: T): FeatureReturnType[T] {
-		return this.manager?.getFeatureValue(feature) as FeatureReturnType[T];
+		return undefined;
+		// return this.manager?.getFeatureValue(feature) as FeatureReturnType[T];
 	}
 
 	getManagementJwt(): string {
@@ -409,11 +412,12 @@ export class License implements LicenseProvider {
 
 	/** @deprecated Use `LicenseState` instead. */
 	getTeamProjectLimit() {
-		return this.getValue(LICENSE_QUOTAS.TEAM_PROJECT_LIMIT) ?? 0;
+		return this.getValue(LICENSE_QUOTAS.TEAM_PROJECT_LIMIT) ?? -1;
 	}
 
 	getPlanName(): string {
-		return this.getValue('planName') ?? 'Community';
+		return 'Business';
+		// return this.getValue('planName') ?? 'Community';
 	}
 
 	getInfo(): string {
@@ -426,17 +430,20 @@ export class License implements LicenseProvider {
 
 	/** @deprecated Use `LicenseState` instead. */
 	isWithinUsersLimit() {
-		return this.getUsersLimit() === UNLIMITED_LICENSE_QUOTA;
+		return true;
+		// return this.getUsersLimit() === UNLIMITED_LICENSE_QUOTA;
 	}
 
 	@OnLeaderTakeover()
 	enableAutoRenewals() {
-		this.manager?.enableAutoRenewals();
+		return false;
+		// this.manager?.enableAutoRenewals();
 	}
 
 	@OnLeaderStepdown()
 	disableAutoRenewals() {
-		this.manager?.disableAutoRenewals();
+		return true;
+		// this.manager?.disableAutoRenewals();
 	}
 
 	private onExpirySoon() {
