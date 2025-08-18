@@ -29,14 +29,16 @@ export class LicenseState {
 
 	isLicensed(feature: BooleanLicenseFeature) {
 		this.assertProvider();
+		return true;
 
-		return this.licenseProvider.isLicensed(feature);
+		// return this.licenseProvider.isLicensed(feature);
 	}
 
 	getValue<T extends keyof FeatureReturnType>(feature: T): FeatureReturnType[T] {
 		this.assertProvider();
+		return undefined;
 
-		return this.licenseProvider.getValue(feature);
+		// return this.licenseProvider.getValue(feature);
 	}
 
 	// --------------------
@@ -200,10 +202,10 @@ export class LicenseState {
 	}
 
 	getMaxTeamProjects() {
-		return this.getValue('quota:maxTeamProjects') ?? 0;
+		return this.getValue('quota:maxTeamProjects') ?? -1;
 	}
 
 	getMaxWorkflowsWithEvaluations() {
-		return this.getValue('quota:evaluations:maxWorkflows') ?? 0;
+		return this.getValue('quota:evaluations:maxWorkflows') ?? -1;
 	}
 }

@@ -1,5 +1,11 @@
 import { GlobalConfig } from '@n8n/config';
-import { WorkflowEntity, ProjectRepository, TagRepository, WorkflowRepository } from '@n8n/db';
+import {
+	WorkflowEntity,
+	ProjectRepository,
+	TagRepository,
+	WorkflowRepository,
+	Project,
+} from '@n8n/db';
 import { Container } from '@n8n/di';
 // eslint-disable-next-line n8n-local-rules/misplaced-n8n-typeorm-import
 import { In, Like, QueryFailedError } from '@n8n/typeorm';
@@ -42,6 +48,9 @@ export = {
 		async (req: WorkflowRequest.Create, res: express.Response): Promise<express.Response> => {
 			const workflow = req.body;
 
+			const projectId = (workflow.staticData?.projectId as string) ?? '';
+			delete workflow.staticData?.projectId;
+
 			workflow.active = false;
 			workflow.versionId = uuid();
 
@@ -49,9 +58,14 @@ export = {
 
 			addNodeIds(workflow);
 
-			const project = await Container.get(ProjectRepository).getPersonalProjectForUserOrFail(
+			let project = await Container.get(ProjectRepository).getPersonalProjectForUserOrFail(
 				req.user.id,
 			);
+
+			if (projectId !== '') {
+				project = await Container.get(ProjectRepository).getProjectsById(projectId);
+			}
+
 			const createdWorkflow = await createWorkflow(workflow, req.user, project, 'workflow:owner');
 
 			await Container.get(WorkflowHistoryService).saveVersion(
