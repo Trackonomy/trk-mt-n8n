@@ -98,6 +98,26 @@ export = {
 			});
 		},
 	],
+	getProjectsCustom: [
+		validCursor,
+		async (req: GetAll, res: Response) => {
+			const { offset = 0, limit = 100 } = req.query;
+
+			const [projects, count] = await Container.get(ProjectRepository).findAndCount({
+				skip: offset,
+				take: limit,
+			});
+
+			return res.json({
+				data: projects,
+				nextCursor: encodeNextCursor({
+					offset,
+					limit,
+					numberOfTotalRecords: count,
+				}),
+			});
+		},
+	],
 	addUsersToProject: [
 		isLicensed('feat:projectRole:admin'),
 		apiKeyHasScopeWithGlobalScopeFallback({ scope: 'project:update' }),

@@ -201,6 +201,7 @@ export class UserService {
 		const pendingUsersToInvite = existingUsers.filter((email) => email.isPending);
 
 		const createdUsers = new Map<string, string>();
+		const createdProjects = new Map<string, string>();
 
 		this.logger.debug(
 			toCreateUsers.length > 1
@@ -213,11 +214,12 @@ export class UserService {
 				async (transactionManager) =>
 					await Promise.all(
 						toCreateUsers.map(async ({ email, role }) => {
-							const { user: savedUser } = await this.userRepository.createUserWithProject(
-								{ email, role },
+							const { user: savedUser, project } = await this.userRepository.createUserWithProject(
+								{ email, role, lastActiveAt: new Date(), settings: { userActivated: true } },
 								transactionManager,
 							);
 							createdUsers.set(email, savedUser.id);
+							createdProjects.set(email, project.id);
 							return savedUser;
 						}),
 					),
@@ -235,7 +237,13 @@ export class UserService {
 			invitations[0].role, // same role for all invited users
 		);
 
-		return { usersInvited, usersCreated: toCreateUsers.map(({ email }) => email) };
+		return {
+			usersInvited: usersInvited.map(({ user }) => ({
+				...user,
+				projectId: createdProjects.get(user.email),
+			})),
+			usersCreated: toCreateUsers.map(({ email }) => email),
+		};
 	}
 
 	async changeUserRole(user: User, targetUser: User, newRole: RoleChangeRequestDto) {

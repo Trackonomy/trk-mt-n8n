@@ -14,3 +14,5 @@ export const WORKFLOW_SHARING_EDITOR_SCOPES: Scope[] = [
 	'workflow:update',
 	'workflow:execute',
 ];
+
+export const WORKFLOW_SHARING_VIEWER_SCOPES: Scope[] = ['workflow:read', 'workflow:execute'];

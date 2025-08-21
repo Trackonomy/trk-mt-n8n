@@ -80,6 +80,8 @@ paths:
     $ref: './handlers/variables/spec/paths/variables.id.yml'
   /projects:
     $ref: './handlers/projects/spec/paths/projects.yml'
+  /projects-trk:
+    $ref: './handlers/projects/spec/paths/projects-trk.yml'
   /projects/{projectId}:
     $ref: './handlers/projects/spec/paths/projects.projectId.yml'
   /projects/{projectId}/users:
