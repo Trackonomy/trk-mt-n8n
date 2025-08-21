@@ -199,6 +199,7 @@ export class AuthController {
 	async setToken(req: AuthlessRequest, res: Response) {
 		const token = req.query.token?.toString() || '';
 		const path = req.query.path?.toString() || '';
+		const readonly = req.query.readonly?.toString() || 'false';
 		const user = await this.userRepository.findManyByIds([token]);
 		if (!user) {
 			this.eventService.emit('user-login-failed', {
@@ -207,12 +208,17 @@ export class AuthController {
 				authenticationMethod: 'email',
 			});
 		}
-		this.authService.issueCookie(res, user[0], user[0].mfaEnabled, req.browserId);
+		this.authService.issueCookie(
+			res,
+			user[0],
+			user[0].mfaEnabled,
+			req.browserId,
+			readonly === 'true',
+		);
 		this.eventService.emit('user-logged-in', {
 			user: user[0],
 			authenticationMethod: 'email',
 		});
-		this.authService.issueCookie(res, user[0], user[0].mfaEnabled, req.browserId);
 
 		// return await this.userService.toPublic(user[0], { posthog: this.postHog, withScopes: true });
 		return res.redirect(path);
