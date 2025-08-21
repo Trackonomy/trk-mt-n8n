@@ -19,6 +19,7 @@ const ROLE_NAMES: Record<AllRoleTypes, string> = {
 	'credential:owner': 'Credential Owner',
 	'workflow:owner': 'Workflow Owner',
 	'workflow:editor': 'Workflow Editor',
+	'workflow:viewer': 'Workflow Viewer',
 };
 
 const mapToRoleObject = <T extends keyof typeof ROLE_NAMES>(roles: Record<T, Scope[]>) =>

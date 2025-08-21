@@ -88,6 +88,7 @@ export const PROJECT_VIEWER_SCOPES: Scope[] = [
 	'project:read',
 	'workflow:list',
 	'workflow:read',
+	'workflow:update',
 	'folder:read',
 	'folder:list',
 ];
