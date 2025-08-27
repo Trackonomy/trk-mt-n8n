@@ -166,7 +166,6 @@ export class AuthService {
 			usedMfa,
 			readonly,
 		};
-		console.log({ payload });
 		return this.jwtService.sign(payload, {
 			expiresIn: this.jwtExpiration,
 		});
@@ -180,8 +179,6 @@ export class AuthService {
 		const jwtPayload: IssuedJWT = this.jwtService.verify(token, {
 			algorithms: ['HS256'],
 		});
-
-		console.log({ jwtPayloadresolved: jwtPayload });
 
 		// TODO: Use an in-memory ttl-cache to cache the User object for upto a minute
 		const user = await this.userRepository.findOne({
