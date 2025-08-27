@@ -19,7 +19,7 @@ export type AuthlessRequest<
 	RouteParams = {},
 	ResponseBody = {},
 	RequestBody = {},
-	RequestQuery = { token?: string; path?: string },
+	RequestQuery = { token?: string; path?: string; readonly?: string },
 > = APIRequest<RouteParams, ResponseBody, RequestBody, RequestQuery>;
 
 export namespace ListQuery {
