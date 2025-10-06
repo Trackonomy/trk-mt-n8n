@@ -54,4 +54,4 @@ USER node
 
 # Use tini for proper signal handling
 ENTRYPOINT ["tini", "--"]
-CMD ["node", "packages/cli/bin/n8n", "start"]
+CMD ["node", "packages/cli/bin/n8n", "start", "--port=8120"]
