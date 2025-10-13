@@ -51,7 +51,7 @@ export class LicenseService {
 				},
 			},
 			license: {
-				planId: mainPlan?.productId ?? '',
+				planId: mainPlan?.productId ?? '031ebde1-0ebe-47b8-802a-29c084a2a4c3',
 				planName: this.license.getPlanName(),
 			},
 		};

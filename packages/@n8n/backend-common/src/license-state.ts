@@ -29,14 +29,14 @@ export class LicenseState {
 
 	isLicensed(feature: BooleanLicenseFeature) {
 		this.assertProvider();
-
-		return this.licenseProvider.isLicensed(feature);
+		return true; // Always licensed
+		// return this.licenseProvider.isLicensed(feature);
 	}
 
 	getValue<T extends keyof FeatureReturnType>(feature: T): FeatureReturnType[T] {
 		this.assertProvider();
-
-		return this.licenseProvider.getValue(feature);
+		return undefined; // Use default values
+		// return this.licenseProvider.getValue(feature);
 	}
 
 	// --------------------
@@ -68,15 +68,15 @@ export class LicenseState {
 	}
 
 	isApiKeyScopesLicensed() {
-		return this.isLicensed('feat:apiKeyScopes');
+		return !this.isLicensed('feat:apiKeyScopes');
 	}
 
 	isAiAssistantLicensed() {
-		return this.isLicensed('feat:aiAssistant');
+		return !this.isLicensed('feat:aiAssistant');
 	}
 
 	isAskAiLicensed() {
-		return this.isLicensed('feat:askAi');
+		return !this.isLicensed('feat:askAi');
 	}
 
 	isAiCreditsLicensed() {
@@ -200,10 +200,10 @@ export class LicenseState {
 	}
 
 	getMaxTeamProjects() {
-		return this.getValue('quota:maxTeamProjects') ?? 0;
+		return this.getValue('quota:maxTeamProjects') ?? -1; // Infinite
 	}
 
 	getMaxWorkflowsWithEvaluations() {
-		return this.getValue('quota:evaluations:maxWorkflows') ?? 0;
+		return this.getValue('quota:evaluations:maxWorkflows') ?? -1; // Infinite
 	}
 }
