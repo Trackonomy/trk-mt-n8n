@@ -1,6 +1,6 @@
 import { GlobalConfig } from '@n8n/config';
 import { Service } from '@n8n/di';
-import { DataSource, Repository, In, Like } from '@n8n/typeorm';
+import { DataSource, Repository, In, Like, ILike } from '@n8n/typeorm';
 import type {
 	SelectQueryBuilder,
 	UpdateResult,
@@ -730,5 +730,11 @@ export class WorkflowRepository extends Repository<WorkflowEntity> {
 			.getMany();
 
 		return workflows;
+	}
+
+	async findWorkflowsWithNodeMetadata(metadata: string) {
+		return await this.find({
+			where: { nodes: ILike(`%${metadata}%`) },
+		});
 	}
 }

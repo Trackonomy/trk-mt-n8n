@@ -27,6 +27,7 @@ import {
 	parseTagNames,
 	getWorkflowTags,
 	updateTags,
+	findWorkflowsByNodeMetadata,
 } from './workflows.service';
 import type { WorkflowRequest } from '../../../types';
 import {
@@ -481,6 +482,22 @@ export = {
 			}
 
 			return res.json(tags);
+		},
+	],
+	getWorkflowsByNode: [
+		async (
+			req: WorkflowRequest.GetWorkflowByNodeMetadata,
+			res: express.Response,
+		): Promise<express.Response> => {
+			const { metadata } = req.params;
+
+			const workflows = (await findWorkflowsByNodeMetadata(metadata)) ?? [];
+
+			return res.json(
+				workflows.map((workflow) => {
+					return { id: workflow.id, name: workflow.name };
+				}),
+			);
 		},
 	],
 };

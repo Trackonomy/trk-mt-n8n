@@ -1,0 +1,20 @@
+get:
+  x-eov-operation-id: getWorkflowsByNode
+  x-eov-operation-handler: v1/handlers/workflows/workflows.handler
+  tags:
+    - Workflow
+  summary: Retrieves workflows by node metadata.
+  description: Retrieves workflows by node metadata.
+  parameters:
+    - $ref: '../schemas/parameters/workflowNodeMetadata.yml'
+  responses:
+    '200':
+      description: Operation successful.
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/workflowIdNameList.yml'
+    '401':
+      $ref: '../../../../shared/spec/responses/unauthorized.yml'
+    '404':
+      $ref: '../../../../shared/spec/responses/notFound.yml'

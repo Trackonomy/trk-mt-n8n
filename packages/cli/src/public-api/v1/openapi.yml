@@ -66,6 +66,8 @@ paths:
     $ref: './handlers/credentials/spec/paths/credentials.id.transfer.yml'
   /workflows/{id}/tags:
     $ref: './handlers/workflows/spec/paths/workflows.id.tags.yml'
+  /workflows/{metadata}/node:
+    $ref: './handlers/workflows/spec/paths/workflows.metadata.node.yml'
   /users:
     $ref: './handlers/users/spec/paths/users.yml'
   /users/{id}:

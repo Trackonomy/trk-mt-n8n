@@ -1,0 +1,6 @@
+name: metadata
+in: path
+description: Node metadata of the workflow.
+required: true
+schema:
+  type: string

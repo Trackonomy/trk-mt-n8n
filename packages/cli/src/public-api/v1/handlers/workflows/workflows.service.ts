@@ -136,3 +136,9 @@ export async function updateTags(workflowId: string, newTags: string[]): Promise
 		);
 	});
 }
+
+export async function findWorkflowsByNodeMetadata(
+	metadata: string,
+): Promise<WorkflowEntity[] | null> {
+	return await Container.get(WorkflowRepository).findWorkflowsWithNodeMetadata(metadata);
+}
