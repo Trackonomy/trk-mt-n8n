@@ -12,6 +12,9 @@ import {
 import type { PublicUser, User } from '@n8n/db';
 import {
 	FolderRepository,
+	GLOBAL_ADMIN_ROLE,
+	GLOBAL_MEMBER_ROLE,
+	GLOBAL_OWNER_ROLE,
 	ProjectRelationRepository,
 	ProjectRepository,
 	SharedCredentialsRepository,
@@ -38,6 +41,7 @@ import { createAdmin, createMember, createOwner, createUser, getUserById } from 
 import type { SuperAgentTest } from './shared/types';
 import * as utils from './shared/utils/';
 import { validateUser } from './shared/utils/users';
+import { createRole } from '@test-integration/db/roles';
 
 mockInstance(Telemetry);
 mockInstance(ExecutionService);
@@ -61,26 +65,26 @@ describe('GET /users', () => {
 		userRepository = Container.get(UserRepository);
 
 		owner = await createUser({
-			role: 'global:owner',
+			role: GLOBAL_OWNER_ROLE,
 			email: 'owner@n8n.io',
 			firstName: 'OwnerFirstName',
 			lastName: 'OwnerLastName',
 		});
 		member1 = await createUser({
-			role: 'global:member',
+			role: GLOBAL_MEMBER_ROLE,
 			email: 'member1@n8n.io',
 			firstName: 'Member1FirstName',
 			lastName: 'Member1LastName',
 			mfaEnabled: true,
 		});
 		member2 = await createUser({
-			role: 'global:member',
+			role: GLOBAL_MEMBER_ROLE,
 			email: 'member2@n8n.io',
 			firstName: 'Member2FirstName',
 			lastName: 'Member2LastName',
 		});
 		await createUser({
-			role: 'global:admin',
+			role: GLOBAL_ADMIN_ROLE,
 			email: 'admin@n8n.io',
 			firstName: 'AdminFirstName',
 			lastName: 'AdminLastName',
@@ -281,6 +285,62 @@ describe('GET /users', () => {
 					items: expect.arrayContaining([]),
 				});
 				expect(_response.body.data.items).toHaveLength(0);
+			});
+
+			test('should filter users by ids', async () => {
+				const response = await ownerAgent
+					.get('/users')
+					.query(`filter={ "ids": ["${member1.id}", "${member2.id}"] }`)
+					.expect(200);
+
+				expect(response.body.data).toEqual({
+					count: 2,
+					items: expect.arrayContaining([]),
+				});
+				expect(response.body.data.items).toHaveLength(2);
+
+				const returnedIds = response.body.data.items.map((user: PublicUser) => user.id);
+				expect(returnedIds).toContain(member1.id);
+				expect(returnedIds).toContain(member2.id);
+			});
+
+			test('should filter users by isPending', async () => {
+				// Create a pending user (user without password)
+				const pendingUser = await createUser({
+					role: GLOBAL_MEMBER_ROLE,
+					email: 'pending-filter-test@n8n.io',
+					firstName: 'PendingFilter',
+					lastName: 'Test',
+					password: null,
+				});
+
+				try {
+					const response = await ownerAgent
+						.get('/users')
+						.query('filter={ "isPending": true }')
+						.expect(200);
+
+					expect(response.body.data.items.length).toBeGreaterThan(0);
+					const foundPendingUser = response.body.data.items.find(
+						(user: PublicUser) => user.id === pendingUser.id,
+					);
+					expect(foundPendingUser).toBeDefined();
+					expect(foundPendingUser!.email).toBe('pending-filter-test@n8n.io');
+
+					const _response = await ownerAgent
+						.get('/users')
+						.query('filter={ "isPending": false }')
+						.expect(200);
+
+					const nonPendingUserIds = _response.body.data.items.map((user: PublicUser) => user.id);
+					expect(nonPendingUserIds).not.toContain(pendingUser.id);
+					expect(nonPendingUserIds).toContain(member1.id);
+					expect(nonPendingUserIds).toContain(member2.id);
+					expect(nonPendingUserIds).toContain(owner.id);
+				} finally {
+					// Clean up the pending user
+					await userRepository.delete({ id: pendingUser.id });
+				}
 			});
 		});
 
@@ -575,7 +635,7 @@ describe('GET /users', () => {
 			let pendingUser: User;
 			beforeAll(async () => {
 				pendingUser = await createUser({
-					role: 'global:member',
+					role: { slug: 'global:member' },
 					email: 'pending@n8n.io',
 					firstName: 'PendingFirstName',
 					lastName: 'PendingLastName',
@@ -626,7 +686,6 @@ describe('GET /users', () => {
 				const nonPendingUser = responseData.items.find((user) => user.id === member1.id);
 
 				expect(nonPendingUser).toBeDefined();
-				expect(nonPendingUser!.isPending).toBe(false);
 				expect(nonPendingUser!.inviteAcceptUrl).toBeUndefined();
 			});
 		});
@@ -723,14 +782,14 @@ describe('GET /users', () => {
 
 			test('should sort by firstName and lastName combined', async () => {
 				const user1 = await createUser({
-					role: 'global:member',
+					role: { slug: 'global:member' },
 					email: 'memberz1@n8n.io',
 					firstName: 'ZZZFirstName',
 					lastName: 'ZZZLastName',
 				});
 
 				const user2 = await createUser({
-					role: 'global:member',
+					role: { slug: 'global:member' },
 					email: 'memberz2@n8n.io',
 					firstName: 'ZZZFirstName',
 					lastName: 'ZZYLastName',
@@ -764,6 +823,63 @@ describe('GET /users', () => {
 
 				await userRepository.delete({ id: user1.id });
 				await userRepository.delete({ id: user2.id });
+			});
+		});
+
+		describe('field restrictions based on user:create scope', () => {
+			test('should return limited fields for members without user:create scope', async () => {
+				const response = await memberAgent.get('/users').expect(200);
+
+				const users = response.body.data.items;
+
+				expect(users).toBeInstanceOf(Array);
+
+				// Fields that should be restricted for members without user:create scope
+				const restrictionsFields = [
+					'mfaEnabled',
+					'settings',
+					'personalizationAnswers',
+					'inviteAcceptUrl',
+					'lastActiveAt',
+					'isOwner',
+					'signInType',
+					'projectRelations',
+				];
+
+				// Verify that sensitive/admin fields are NOT present for members
+				users.forEach((user: any) => {
+					// Basic fields should be present
+					expect(user).toHaveProperty('id');
+
+					if (user.id !== member1.id) {
+						// Admin-only fields should NOT be present
+						restrictionsFields.forEach((field) => {
+							expect(user).not.toHaveProperty(field);
+						});
+					} else {
+						// Admin-only fields should be present for own user
+						expect(user).toHaveProperty('mfaEnabled');
+						expect(user).toHaveProperty('settings');
+						expect(user).toHaveProperty('personalizationAnswers');
+						expect(user).toHaveProperty('lastActiveAt');
+						expect(user).toHaveProperty('isOwner');
+						expect(user).toHaveProperty('signInType');
+					}
+				});
+			});
+
+			test('should return full fields for owners/admins with user:create scope', async () => {
+				const response = await ownerAgent.get('/users').expect(200);
+
+				const users = response.body.data.items;
+
+				expect(users).toBeInstanceOf(Array);
+
+				// Verify that admin fields ARE present for owners
+				const userWithMfa = users.find((u: any) => u.email === 'member1@n8n.io');
+				expect(userWithMfa).toHaveProperty('mfaEnabled', true);
+				expect(userWithMfa).toHaveProperty('isOwner');
+				expect(userWithMfa).toHaveProperty('signInType');
 			});
 		});
 	});
@@ -1089,7 +1205,7 @@ describe('DELETE /users/:id', () => {
 					id: teamProject.id,
 					projectRelations: {
 						userId: transferee.id,
-						role: 'project:editor',
+						role: { slug: 'project:editor' },
 					},
 				}),
 			).resolves.not.toBeNull(),
@@ -1423,7 +1539,7 @@ describe('PATCH /users/:id/role', () => {
 
 			const user = await getUserById(otherAdmin.id);
 
-			expect(user.role).toBe('global:member');
+			expect(user.role.slug).toBe('global:member');
 
 			// restore other admin
 
@@ -1441,7 +1557,7 @@ describe('PATCH /users/:id/role', () => {
 
 			const user = await getUserById(admin.id);
 
-			expect(user.role).toBe('global:member');
+			expect(user.role.slug).toBe('global:member');
 
 			// restore admin
 
@@ -1457,9 +1573,9 @@ describe('PATCH /users/:id/role', () => {
 			expect(response.statusCode).toBe(200);
 			expect(response.body.data).toStrictEqual({ success: true });
 
-			const user = await getUserById(admin.id);
+			const user = await getUserById(member.id);
 
-			expect(user.role).toBe('global:admin');
+			expect(user.role.slug).toBe('global:admin');
 
 			// restore member
 
@@ -1508,7 +1624,7 @@ describe('PATCH /users/:id/role', () => {
 
 			const user = await getUserById(admin.id);
 
-			expect(user.role).toBe('global:admin');
+			expect(user.role.slug).toBe('global:admin');
 
 			// restore member
 
@@ -1526,7 +1642,7 @@ describe('PATCH /users/:id/role', () => {
 
 			const user = await getUserById(admin.id);
 
-			expect(user.role).toBe('global:member');
+			expect(user.role.slug).toBe('global:member');
 
 			// restore admin
 
@@ -1569,5 +1685,31 @@ describe('PATCH /users/:id/role', () => {
 
 		expect(response.statusCode).toBe(200);
 		expect(response.body.data).toStrictEqual({ success: true });
+	});
+
+	test('should fail to change to non-existing role', async () => {
+		const customRole = 'custom:project-role';
+		await createRole({ slug: customRole, displayName: 'Custom Role', roleType: 'project' });
+		const response = await ownerAgent.patch(`/users/${member.id}/role`).send({
+			newRoleName: customRole,
+		});
+
+		expect(response.statusCode).toBe(400);
+		expect(response.body.message).toBe('Role custom:project-role does not exist');
+	});
+
+	test('should change to existing custom role', async () => {
+		const customRole = 'custom:role';
+		await createRole({ slug: customRole, displayName: 'Custom Role 1', roleType: 'global' });
+		const response = await ownerAgent.patch(`/users/${member.id}/role`).send({
+			newRoleName: customRole,
+		});
+
+		expect(response.statusCode).toBe(200);
+		expect(response.body.data).toStrictEqual({ success: true });
+
+		const user = await getUserById(member.id);
+
+		expect(user.role.slug).toBe(customRole);
 	});
 });

@@ -6,7 +6,7 @@ import {
 	type SupplyData,
 } from 'n8n-workflow';
 
-import { logWrapper } from '@utils/logWrapper';
+import { logWrapper } from '@n8n/ai-utilities';
 import { getConnectionHintNoticeField } from '@utils/sharedFields';
 
 import { TokenTextSplitter } from './TokenTextSplitter';
@@ -48,12 +48,14 @@ export class TextSplitterTokenSplitter implements INodeType {
 				name: 'chunkSize',
 				type: 'number',
 				default: 1000,
+				description: 'Maximum number of tokens per chunk',
 			},
 			{
 				displayName: 'Chunk Overlap',
 				name: 'chunkOverlap',
 				type: 'number',
 				default: 0,
+				description: 'Number of tokens shared between consecutive chunks to preserve context',
 			},
 		],
 	};

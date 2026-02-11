@@ -1,5 +1,5 @@
-import { action } from '@storybook/addon-actions';
-import type { StoryFn } from '@storybook/vue3';
+import type { StoryFn } from '@storybook/vue3-vite';
+import { action } from 'storybook/actions';
 
 import N8nButton from './Button.vue';
 
@@ -9,7 +9,16 @@ export default {
 	argTypes: {
 		type: {
 			control: 'select',
-			options: ['primary', 'secondary', 'tertiary', 'success', 'warning', 'danger', 'highlight'],
+			options: [
+				'primary',
+				'secondary',
+				'tertiary',
+				'success',
+				'warning',
+				'danger',
+				'highlight',
+				'highlightFill',
+			],
 		},
 		size: {
 			control: {
@@ -158,6 +167,12 @@ WithIcon.args = {
 export const Highlight = AllSizesTemplate.bind({});
 Highlight.args = {
 	type: 'highlight',
+	label: 'Button',
+};
+
+export const HighlightFill = AllSizesTemplate.bind({});
+HighlightFill.args = {
+	type: 'highlightFill',
 	label: 'Button',
 };
 

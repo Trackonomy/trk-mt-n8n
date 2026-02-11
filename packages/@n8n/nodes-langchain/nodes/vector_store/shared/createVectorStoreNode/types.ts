@@ -12,6 +12,7 @@ import type {
 	ThemeIconColor,
 	IDataObject,
 	NodeParameterValueType,
+	IBuilderHint,
 } from 'n8n-workflow';
 
 export type NodeOperationMode = 'insert' | 'load' | 'retrieve' | 'update' | 'retrieve-as-tool';
@@ -19,6 +20,7 @@ export type NodeOperationMode = 'insert' | 'load' | 'retrieve' | 'update' | 'ret
 export interface NodeMeta {
 	displayName: string;
 	name: string;
+	hidden?: boolean;
 	description: string;
 	docsUrl: string;
 	icon: Icon;
@@ -27,6 +29,7 @@ export interface NodeMeta {
 	operationModes?: NodeOperationMode[];
 	categories?: string[];
 	subcategories?: Record<string, string[]>;
+	builderHint?: IBuilderHint;
 }
 
 export interface VectorStoreNodeConstructorArgs<T extends VectorStore = VectorStore> {
@@ -52,6 +55,17 @@ export interface VectorStoreNodeConstructorArgs<T extends VectorStore = VectorSt
 	loadFields?: INodeProperties[];
 	retrieveFields?: INodeProperties[];
 	updateFields?: INodeProperties[];
+
+	/**
+	 * Optional function called once before any documents are inserted.
+	 * Use this for one-time setup operations like clearing an index.
+	 * Only called for node version 1.1+ where batch processing is used.
+	 */
+	beforeInsert?: (
+		context: IExecuteFunctions | ISupplyDataFunctions,
+		embeddings: Embeddings,
+		itemIndex: number,
+	) => Promise<void>;
 
 	/**
 	 * Function to populate the vector store with documents

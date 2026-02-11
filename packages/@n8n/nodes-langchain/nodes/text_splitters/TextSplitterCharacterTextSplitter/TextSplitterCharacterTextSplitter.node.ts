@@ -8,7 +8,7 @@ import {
 	type SupplyData,
 } from 'n8n-workflow';
 
-import { logWrapper } from '@utils/logWrapper';
+import { logWrapper } from '@n8n/ai-utilities';
 import { getConnectionHintNoticeField } from '@utils/sharedFields';
 
 export class TextSplitterCharacterTextSplitter implements INodeType {
@@ -54,12 +54,14 @@ export class TextSplitterCharacterTextSplitter implements INodeType {
 				name: 'chunkSize',
 				type: 'number',
 				default: 1000,
+				description: 'Maximum number of characters per chunk',
 			},
 			{
 				displayName: 'Chunk Overlap',
 				name: 'chunkOverlap',
 				type: 'number',
 				default: 0,
+				description: 'Number of characters shared between consecutive chunks to preserve context',
 			},
 		],
 	};
