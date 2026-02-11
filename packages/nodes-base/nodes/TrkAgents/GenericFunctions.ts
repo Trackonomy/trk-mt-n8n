@@ -27,6 +27,7 @@ export async function TrkAgentsApiRequest(
 			customer_id: credentials.customerId,
 			authorized_groups: credentials.authorizedGroups,
 			'x-api-key': credentials.apiKey,
+			'X-API-KEY': credentials.apiKey,
 		},
 		method,
 		body,
