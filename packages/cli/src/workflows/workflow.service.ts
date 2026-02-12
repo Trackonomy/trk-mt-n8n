@@ -916,6 +916,11 @@ export class WorkflowService {
 				workflowId,
 			},
 		});
+		if (user.readonly) {
+			return this.roleService
+				.combineResourceScopes('workflow', user, shared, userProjectRelations)
+				.filter((scope) => scope === 'workflow:read' || scope === 'workflow:execute');
+		}
 		return this.roleService.combineResourceScopes('workflow', user, shared, userProjectRelations);
 	}
 

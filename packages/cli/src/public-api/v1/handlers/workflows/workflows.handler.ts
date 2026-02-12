@@ -18,7 +18,14 @@ import { WorkflowHistoryService } from '@/workflows/workflow-history/workflow-hi
 import { WorkflowService } from '@/workflows/workflow.service';
 import { EnterpriseWorkflowService } from '@/workflows/workflow.service.ee';
 
-import { createWorkflow, parseTagNames, getWorkflowTags, updateTags } from './workflows.service';
+import {
+	createWorkflow,
+	parseTagNames,
+	getWorkflowTags,
+	updateTags,
+	findWorkflowsByNodeMetadata,
+} from './workflows.service';
+
 import type { WorkflowRequest } from '../../../types';
 import {
 	apiKeyHasScope,
@@ -33,6 +40,9 @@ export = {
 		async (req: WorkflowRequest.Create, res: express.Response): Promise<express.Response> => {
 			const workflow = req.body;
 
+			const projectId = (workflow.staticData?.projectId as string) ?? '';
+			delete workflow.staticData?.projectId;
+
 			workflow.active = false;
 			workflow.versionId = uuid();
 
@@ -40,9 +50,14 @@ export = {
 
 			addNodeIds(workflow);
 
-			const project = await Container.get(ProjectRepository).getPersonalProjectForUserOrFail(
+			let project = await Container.get(ProjectRepository).getPersonalProjectForUserOrFail(
 				req.user.id,
 			);
+
+			if (projectId !== '') {
+				project = await Container.get(ProjectRepository).getProjectsById(projectId);
+			}
+
 			const createdWorkflow = await createWorkflow(workflow, req.user, project, 'workflow:owner');
 
 			await Container.get(WorkflowHistoryService).saveVersion(
@@ -442,6 +457,22 @@ export = {
 			}
 
 			return res.json(tags);
+		},
+	],
+	getWorkflowsByNode: [
+		async (
+			req: WorkflowRequest.GetWorkflowByNodeMetadata,
+			res: express.Response,
+		): Promise<express.Response> => {
+			const { metadata } = req.params;
+
+			const workflows = (await findWorkflowsByNodeMetadata(metadata)) ?? [];
+
+			return res.json(
+				workflows.map((workflow) => {
+					return { id: workflow.id, name: workflow.name };
+				}),
+			);
 		},
 	],
 };

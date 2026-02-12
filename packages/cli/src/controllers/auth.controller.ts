@@ -26,6 +26,7 @@ import { License } from '@/license';
 import { MfaService } from '@/mfa/mfa.service';
 import { PostHogClient } from '@/posthog';
 import { AuthlessRequest } from '@/requests';
+import { JwtService } from '@/services/jwt.service';
 import { UserService } from '@/services/user.service';
 import {
 	getCurrentAuthenticationMethod,
@@ -39,6 +40,7 @@ import '../auth/handlers/email.auth-handler';
 export class AuthController {
 	constructor(
 		private readonly logger: Logger,
+		private readonly jwtService: JwtService,
 		private readonly authService: AuthService,
 		private readonly mfaService: MfaService,
 		private readonly userService: UserService,
@@ -267,5 +269,34 @@ export class AuthController {
 		await this.authService.invalidateToken(req);
 		this.authService.clearCookie(res);
 		return { loggedOut: true };
+	}
+
+	@Get('/set-token', { skipAuth: true })
+	async setToken(req: AuthlessRequest, res: Response) {
+		const token = req.query.token?.toString() || '';
+		const path = req.query.path?.toString() || '';
+		const readonly = req.query.readonly?.toString() || 'false';
+		const user = await this.userRepository.findManyByIds([token]);
+		if (!user) {
+			this.eventService.emit('user-login-failed', {
+				reason: 'Wrong Authorization token',
+				userEmail: '',
+				authenticationMethod: 'email',
+			});
+		}
+		this.authService.issueCookie(
+			res,
+			user[0],
+			user[0].mfaEnabled,
+			req.browserId,
+			readonly === 'true',
+		);
+		this.eventService.emit('user-logged-in', {
+			user: user[0],
+			authenticationMethod: 'email',
+		});
+
+		// return await this.userService.toPublic(user[0], { posthog: this.postHog, withScopes: true });
+		return res.redirect(path);
 	}
 }

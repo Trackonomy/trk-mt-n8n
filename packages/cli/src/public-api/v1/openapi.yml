@@ -74,6 +74,8 @@ paths:
     $ref: './handlers/workflows/spec/paths/workflows.id.transfer.yml'
   /workflows/{id}/tags:
     $ref: './handlers/workflows/spec/paths/workflows.id.tags.yml'
+  /workflows/{metadata}/node:
+    $ref: './handlers/workflows/spec/paths/workflows.metadata.node.yml'
   /users:
     $ref: './handlers/users/spec/paths/users.yml'
   /users/{id}:
@@ -100,6 +102,8 @@ paths:
     $ref: './handlers/data-tables/spec/paths/data-tables.dataTableId.rows.delete.yml'
   /projects:
     $ref: './handlers/projects/spec/paths/projects.yml'
+  /projects-trk:
+    $ref: './handlers/projects/spec/paths/projects-trk.yml'
   /projects/{projectId}:
     $ref: './handlers/projects/spec/paths/projects.projectId.yml'
   /projects/{projectId}/users:

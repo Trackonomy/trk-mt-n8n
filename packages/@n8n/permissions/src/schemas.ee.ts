@@ -55,7 +55,11 @@ export const projectRoleSchema = z.union([systemProjectRoleSchema, customProject
 
 export const credentialSharingRoleSchema = z.enum(['credential:owner', 'credential:user']);
 
-export const workflowSharingRoleSchema = z.enum(['workflow:owner', 'workflow:editor']);
+export const workflowSharingRoleSchema = z.enum([
+	'workflow:owner',
+	'workflow:editor',
+	'workflow:viewer',
+]);
 
 const ALL_SCOPES_LOOKUP_SET = new Set(ALL_SCOPES as string[]);
 

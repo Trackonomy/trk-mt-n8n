@@ -1,0 +1,19 @@
+get:
+  x-eov-operation-id: getProjectsCustom
+  x-eov-operation-handler: v1/handlers/projects/projects.handler
+  tags:
+    - Projects
+  summary: Retrieve projects
+  description: Retrieve projects from your instance.
+  parameters:
+    - $ref: '../../../../shared/spec/parameters/limit.yml'
+    - $ref: '../../../../shared/spec/parameters/cursor.yml'
+  responses:
+    '200':
+      description: Operation successful.
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/projectList.yml'
+    '401':
+      $ref: '../../../../shared/spec/responses/unauthorized.yml'
