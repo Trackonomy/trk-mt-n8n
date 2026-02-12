@@ -12,5 +12,5 @@ export class PublicApiConfig {
 
 	/** Whether to disable the Swagger UI for the Public API */
 	@Env('N8N_PUBLIC_API_SWAGGERUI_DISABLED')
-	swaggerUiDisabled: boolean = false;
+	swaggerUiDisabled: boolean = true;
 }
