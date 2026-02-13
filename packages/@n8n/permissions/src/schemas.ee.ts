@@ -18,4 +18,8 @@ export const projectRoleSchema = z.enum([...personalRoleSchema.options, ...teamR
 
 export const credentialSharingRoleSchema = z.enum(['credential:owner', 'credential:user']);
 
-export const workflowSharingRoleSchema = z.enum(['workflow:owner', 'workflow:editor']);
+export const workflowSharingRoleSchema = z.enum([
+	'workflow:owner',
+	'workflow:editor',
+	'workflow:viewer',
+]);

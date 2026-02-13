@@ -39,6 +39,14 @@ export class ProjectRepository extends Repository<Project> {
 		});
 	}
 
+	async getProjectsById(projectId: string, entityManager?: EntityManager) {
+		const em = entityManager ?? this.manager;
+
+		return (await em.findOne(Project, {
+			where: { id: projectId },
+		})) as Project;
+	}
+
 	async getProjectCounts() {
 		return {
 			personal: await this.count({ where: { type: 'personal' } }),

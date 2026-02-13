@@ -110,6 +110,8 @@ export class User extends WithTimestamps implements IUser, AuthPrincipal {
 	 */
 	isPending: boolean;
 
+	readonly: boolean;
+
 	@AfterLoad()
 	@AfterUpdate()
 	computeIsPending(): void {
