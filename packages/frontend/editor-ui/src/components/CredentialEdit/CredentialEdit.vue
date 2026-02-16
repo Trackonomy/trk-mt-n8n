@@ -52,6 +52,7 @@ import {
 } from '@/utils/nodeTypesUtils';
 import { isCredentialModalState, isValidCredentialResponse } from '@/utils/typeGuards';
 import { useElementSize } from '@vueuse/core';
+import { useUsersStore } from '@/stores/users.store';
 
 type Props = {
 	modalName: string;
@@ -68,6 +69,7 @@ const uiStore = useUIStore();
 const workflowsStore = useWorkflowsStore();
 const nodeTypesStore = useNodeTypesStore();
 const projectsStore = useProjectsStore();
+const usersStore = useUsersStore();
 
 const nodeHelpers = useNodeHelpers();
 const externalHooks = useExternalHooks();
@@ -293,17 +295,21 @@ const sidebarItems = computed(() => {
 			label: i18n.baseText('credentialEdit.credentialEdit.connection'),
 			position: 'top',
 		},
-		{
+	];
+
+	if (usersStore?.isInstanceOwner) {
+		menuItems.push({
 			id: 'sharing',
 			label: i18n.baseText('credentialEdit.credentialEdit.sharing'),
 			position: 'top',
-		},
-		{
-			id: 'details',
-			label: i18n.baseText('credentialEdit.credentialEdit.details'),
-			position: 'top',
-		},
-	];
+		});
+	}
+
+	menuItems.push({
+		id: 'details',
+		label: i18n.baseText('credentialEdit.credentialEdit.details'),
+		position: 'top',
+	});
 
 	return menuItems;
 });

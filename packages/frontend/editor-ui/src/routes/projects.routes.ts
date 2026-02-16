@@ -1,6 +1,7 @@
 import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
 import { VIEWS } from '@/constants';
 import { useProjectsStore } from '@/stores/projects.store';
+import { useUsersStore } from '@/stores/users.store';
 import { getResourcePermissions } from '@n8n/permissions';
 
 const MainSidebar = async () => await import('@/components/MainSidebar.vue');
@@ -156,10 +157,33 @@ export const projectsRoutes: RouteRecordRaw[] = [
 			middleware: ['authenticated'],
 		},
 		redirect: '/home/workflows',
-		children: commonChildRoutes.map((route, idx) => ({
-			...route,
-			name: commonChildRouteExtensions.home[idx].name,
-		})),
+		children: commonChildRoutes.map((route, idx) => {
+			const name = commonChildRouteExtensions.home[idx].name;
+			if (name === VIEWS.WORKFLOWS) {
+				return {
+					...route,
+					name,
+					meta: {
+						...route.meta,
+						middlewareOptions: {
+							...(route.meta?.middlewareOptions ?? {}),
+							custom: (options: any) => {
+								const usersStore = useUsersStore();
+								if (!usersStore.isInstanceOwner) {
+									options.next({ name: VIEWS.NOT_FOUND });
+									return true; // Return true so custom middleware doesn't trigger its own redirect
+								}
+								return checkProjectAvailability(options?.to);
+							},
+						},
+					} as any,
+				};
+			}
+			return {
+				...route,
+				name,
+			};
+		}),
 	},
 	{
 		path: '/shared',
