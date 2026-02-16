@@ -17,6 +17,7 @@ import {
 	removeCredential,
 	sanitizeCredentials,
 	saveCredential,
+	saveCredentialCustom,
 	toJsonSchema,
 } from './credentials.service';
 import type { CredentialTypeRequest, CredentialRequest } from '../../../types';
@@ -32,13 +33,24 @@ export = {
 			res: express.Response,
 		): Promise<express.Response<Partial<CredentialsEntity>>> => {
 			try {
+				const { projectId } = req.body;
 				const newCredential = await createCredential(req.body);
 
 				const encryptedData = await encryptCredential(newCredential);
 
 				Object.assign(newCredential, encryptedData);
 
-				const savedCredential = await saveCredential(newCredential, req.user, encryptedData);
+				let savedCredential;
+				if (projectId && projectId !== '' && typeof projectId === 'string') {
+					savedCredential = await saveCredentialCustom(
+						newCredential,
+						projectId,
+						req.user,
+						encryptedData,
+					);
+				} else {
+					savedCredential = await saveCredential(newCredential, req.user, encryptedData);
+				}
 
 				return res.json(sanitizeCredentials(savedCredential));
 			} catch ({ message, httpStatusCode }) {

@@ -20,7 +20,6 @@ export async function TrkAgentsApiRequest(
 	query?: IDataObject,
 ) {
 	const credentials: ICredentialDataDecryptedObject = await this.getCredentials('trkAgentsApi');
-	console.log('credentials', credentials);
 	const options: IRequestOptions = {
 		headers: {
 			'Content-Type': 'application/json',

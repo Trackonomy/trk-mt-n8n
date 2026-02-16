@@ -96,6 +96,52 @@ export async function saveCredential(
 	return result;
 }
 
+export async function saveCredentialCustom(
+	credential: CredentialsEntity,
+	projectId: string,
+	user: User,
+	encryptedData: ICredentialsDb,
+): Promise<CredentialsEntity> {
+	const projectRepository = Container.get(ProjectRepository);
+	const { manager: dbManager } = projectRepository;
+	const result = await dbManager.transaction(async (transactionManager) => {
+		const savedCredential = await transactionManager.save<CredentialsEntity>(credential);
+
+		savedCredential.data = credential.data;
+
+		const newSharedCredential = new SharedCredentials();
+
+		const personalProject = await projectRepository.getProjectsById(projectId, transactionManager);
+
+		Object.assign(newSharedCredential, {
+			role: 'credential:owner',
+			credentials: savedCredential,
+			projectId: personalProject.id,
+		});
+
+		await transactionManager.save<SharedCredentials>(newSharedCredential);
+
+		return savedCredential;
+	});
+
+	await Container.get(ExternalHooks).run('credentials.create', [encryptedData]);
+
+	const project = await Container.get(SharedCredentialsRepository).findCredentialOwningProject(
+		credential.id,
+	);
+
+	Container.get(EventService).emit('credentials-created', {
+		user,
+		credentialType: credential.type,
+		credentialId: credential.id,
+		projectId: project?.id,
+		projectType: project?.type,
+		publicApi: true,
+	});
+
+	return result;
+}
+
 export async function removeCredential(
 	user: User,
 	credentials: CredentialsEntity,

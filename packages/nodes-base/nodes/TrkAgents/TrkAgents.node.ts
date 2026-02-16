@@ -15,6 +15,7 @@ import type {
 	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
+	IDataObject,
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 import { TrkAgentsApiRequest } from './GenericFunctions';
@@ -54,62 +55,28 @@ export class TrkAgents implements INodeType {
 				description: "Agent's ID. Choose from the list, or specify an ID using an expression.",
 			},
 			{
-				displayName: 'Input Preview',
-				name: 'inputPreview',
-				type: 'options',
-				default: '',
-				options: [],
+				displayName: 'Arguments',
+				name: 'arguments',
+				type: 'resourceMapper',
+				default: {
+					mappingMode: 'defineBelow',
+					value: null,
+				},
+				required: true,
 				typeOptions: {
-					reloadOptions: true,
 					loadOptionsDependsOn: ['resource'],
-					loadOptionsMethod: 'getInputPreview',
-				},
-				description: 'Request preview sent to /v1/agent/list',
-				noDataExpression: false,
-			},
-			{
-				displayName: 'Output Preview',
-				name: 'outputPreview',
-				type: 'options',
-				default: '',
-				options: [],
-				typeOptions: {
-					reloadOptions: true,
-					loadOptionsDependsOn: ['resource'],
-					loadOptionsMethod: 'getOutputPreview',
-				},
-				description: 'Response preview for selected agent from /v1/agent/list',
-				noDataExpression: false,
-			},
-			{
-				displayName: 'Additional Input Fields',
-				name: 'additionalFields',
-				type: 'fixedCollection',
-				placeholder: 'Add Input Field',
-				typeOptions: {
-					multipleValues: true,
-				},
-				default: {},
-				options: [
-					{
-						name: 'fields',
-						displayName: 'Field',
-						values: [
-							{
-								displayName: 'Field Name',
-								name: 'fieldName',
-								type: 'string',
-								default: '',
-							},
-							{
-								displayName: 'Value',
-								name: 'value',
-								type: 'string',
-								default: '',
-							},
-						],
+					resourceMapper: {
+						resourceMapperMethod: 'getFields',
+						mode: 'add',
+						fieldWords: {
+							singular: 'argument',
+							plural: 'arguments',
+						},
+						addAllFields: true,
+						multiKeyMatch: true,
 					},
-				],
+				},
+				description: 'The arguments to pass to the agent',
 			},
 		],
 	};
@@ -119,7 +86,12 @@ export class TrkAgents implements INodeType {
 			async getAgents(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const staticData = this.getWorkflowStaticData('node');
 				if (!staticData.trkAgentsPreview) {
-					const responseData = await TrkAgentsApiRequest.call(this, 'GET', '/v1/agent/list', {});
+					const responseData = await TrkAgentsApiRequest.call(
+						this,
+						'GET',
+						'/v1/agent/node/list',
+						{},
+					);
 					if (!responseData?.data) {
 						throw new NodeOperationError(this.getNode(), 'No agent data returned');
 					}
@@ -134,59 +106,58 @@ export class TrkAgents implements INodeType {
 					value: agent.agent_id || '',
 				}));
 			},
-
-			async getInputPreview(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+		},
+		resourceMapping: {
+			async getFields(this: ILoadOptionsFunctions): Promise<any> {
 				const staticData = this.getWorkflowStaticData('node');
 				const agentId = this.getCurrentNodeParameter('resource') as string;
-				// Defensive fallback
+
 				if (!staticData.trkAgentsPreview) {
-					const responseData = await TrkAgentsApiRequest.call(this, 'GET', '/v1/agent/list', {});
+					const responseData = await TrkAgentsApiRequest.call(
+						this,
+						'GET',
+						`/v1/agent/node/${agentId}`,
+						{},
+					);
 					if (!responseData?.data) {
 						throw new NodeOperationError(this.getNode(), 'No agent data returned');
 					}
-					staticData.trkAgentsPreview = responseData.data || {};
+					staticData.trkAgentsPreview = responseData?.data ?? [];
 				}
+
 				const agentsArray = Array.isArray(staticData.trkAgentsPreview)
 					? staticData.trkAgentsPreview
-					: [];
-				const agent = agentsArray.find((a) => a.agent_id === agentId);
+					: [staticData.trkAgentsPreview];
+				const agent = agentsArray.find((a: any) => a.agent_id === agentId);
 
-				const str = JSON.stringify(agent.input, null, 2);
-				return [{ name: str, value: str }];
-			},
+				const fields: IDataObject[] = [];
 
-			async getOutputPreview(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				const staticData = this.getWorkflowStaticData('node');
-				const agentId = this.getCurrentNodeParameter('resource') as string;
-				// Defensive fallback
-				if (!staticData.trkAgentsPreview) {
-					const responseData = await TrkAgentsApiRequest.call(this, 'GET', '/v1/agent/list', {});
-					if (!responseData?.data) {
-						throw new NodeOperationError(this.getNode(), 'No agent data returned');
+				if (agent?.input) {
+					// Assume agent.input is an object: { "key": "value/type" }
+					for (const [key, value] of Object.entries(agent.input || {})) {
+						fields.push({
+							id: key,
+							displayName: key,
+							name: key,
+							required: false,
+							type: typeof value === 'number' ? 'number' : 'string',
+							defaultMatch: true,
+							display: true,
+							readOnly: false,
+						});
 					}
-					staticData.trkAgentsPreview = responseData.data || {};
 				}
-				const agentsArray = Array.isArray(staticData.trkAgentsPreview)
-					? staticData.trkAgentsPreview
-					: [];
-				const agent = agentsArray.find((a) => a.agent_id === agentId);
-				const str = JSON.stringify(
-					agent.output || { message: 'Agent not found in cached data' },
-					null,
-					2,
-				);
-				return [{ name: str, value: str }];
+				return { fields };
 			},
 		},
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-		const additionalFields = this.getNodeParameter('additionalFields', 0);
+		const args = this.getNodeParameter('arguments', 0, {}) as any;
 		const agent_id = this.getNodeParameter('resource', 0);
 		const body = {
-			context: additionalFields,
+			context: args.value || {},
 		};
-
 		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 		const endpoint = `/v1/agent/exec/${agent_id}`;
 
