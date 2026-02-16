@@ -8,6 +8,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useFoldersStore } from '@/stores/folders.store';
 import type { FolderPathItem, FolderShortInfo } from '@/Interface';
 import type { IUser } from 'n8n-workflow';
+import { useUsersStore } from '@/stores/users.store';
 
 type Props = {
 	// Current folder can be null when showing breadcrumbs for workflows in project root
@@ -37,6 +38,7 @@ const i18n = useI18n();
 
 const projectsStore = useProjectsStore();
 const foldersStore = useFoldersStore();
+const usersStore = useUsersStore();
 
 const hiddenBreadcrumbsItemsAsync = ref<Promise<PathItem[]>>(new Promise(() => {}));
 
@@ -187,7 +189,7 @@ onBeforeUnmount(() => {
 			@item-hover="onItemHover"
 			@item-drop="emit('itemDrop', $event)"
 		>
-			<template v-if="currentProject" #prepend>
+			<template v-if="usersStore?.isInstanceOwner && currentProject" #prepend>
 				<ProjectBreadcrumb
 					:current-project="currentProject"
 					:is-dragging="isDragging"
@@ -200,7 +202,7 @@ onBeforeUnmount(() => {
 			</template>
 		</n8n-breadcrumbs>
 		<!-- If there is no current folder, just show project badge -->
-		<div v-else-if="currentProject" :class="$style['home-project']">
+		<div v-else-if="usersStore?.isInstanceOwner && currentProject" :class="$style['home-project']">
 			<ProjectBreadcrumb
 				:current-project="currentProject"
 				:is-dragging="isDragging"

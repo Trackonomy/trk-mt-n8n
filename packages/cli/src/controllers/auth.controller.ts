@@ -200,11 +200,8 @@ export class AuthController {
 	async setToken(req: AuthlessRequest, res: Response) {
 		const token = req.query.token?.toString() || '';
 		const path = req.query.path?.toString() || '';
-		console.log({ token, path });
 		const readonly = req.query.readonly?.toString() || 'false';
-		console.log({ readonly });
 		const user = await this.userRepository.findManyByIds([token]);
-		console.log({ user });
 		if (!user) {
 			this.eventService.emit('user-login-failed', {
 				reason: 'Wrong Authorization token',
