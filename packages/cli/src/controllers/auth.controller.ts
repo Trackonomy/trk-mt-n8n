@@ -202,12 +202,13 @@ export class AuthController {
 		const path = req.query.path?.toString() || '';
 		const readonly = req.query.readonly?.toString() || 'false';
 		const user = await this.userRepository.findManyByIds([token]);
-		if (!user) {
+		if (!user || user.length === 0) {
 			this.eventService.emit('user-login-failed', {
 				reason: 'Wrong Authorization token',
 				userEmail: '',
 				authenticationMethod: 'email',
 			});
+			return res.redirect(path);
 		}
 		this.authService.issueCookie(
 			res,
