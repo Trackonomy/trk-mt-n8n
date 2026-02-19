@@ -27,6 +27,7 @@ import {
 	parseTagNames,
 	getWorkflowTags,
 	updateTags,
+	findWorkflowsByNodeMetadata,
 } from './workflows.service';
 import type { WorkflowRequest } from '../../../types';
 import {
@@ -48,9 +49,8 @@ export = {
 			await replaceInvalidCredentials(workflow);
 
 			addNodeIds(workflow);
-
-			const project = await Container.get(ProjectRepository).getPersonalProjectForUserOrFail(
-				req.user.id,
+			const project = await Container.get(ProjectRepository).getProjectsById(
+				(workflow?.staticData?.projectId || '').toString(),
 			);
 			const createdWorkflow = await createWorkflow(workflow, req.user, project, 'workflow:owner');
 
@@ -468,6 +468,22 @@ export = {
 			}
 
 			return res.json(tags);
+		},
+	],
+	getWorkflowsByNode: [
+		async (
+			req: WorkflowRequest.GetWorkflowByNodeMetadata,
+			res: express.Response,
+		): Promise<express.Response> => {
+			const { metadata } = req.params;
+
+			const workflows = (await findWorkflowsByNodeMetadata(metadata)) ?? [];
+
+			return res.json(
+				workflows.map((workflow) => {
+					return { id: workflow.id, name: workflow.name };
+				}),
+			);
 		},
 	],
 };

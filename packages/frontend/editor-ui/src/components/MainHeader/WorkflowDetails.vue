@@ -155,7 +155,11 @@ const workflowMenuItems = computed<ActionDropdownItem[]>(() => {
 		},
 	];
 
-	if (workflowPermissions.value.move && projectsStore.isTeamProjectFeatureEnabled) {
+	if (
+		workflowPermissions.value.move &&
+		projectsStore.isTeamProjectFeatureEnabled &&
+		usersStore?.isInstanceOwner
+	) {
 		actions.push({
 			id: WORKFLOW_MENU_ACTIONS.CHANGE_OWNER,
 			label: locale.baseText('workflows.item.changeOwner'),
@@ -163,7 +167,7 @@ const workflowMenuItems = computed<ActionDropdownItem[]>(() => {
 		});
 	}
 
-	if (!props.readOnly && !props.isArchived) {
+	if (!props.readOnly && !props.isArchived && usersStore?.isInstanceOwner) {
 		actions.push({
 			id: WORKFLOW_MENU_ACTIONS.RENAME,
 			label: locale.baseText('generic.rename'),
@@ -172,7 +176,10 @@ const workflowMenuItems = computed<ActionDropdownItem[]>(() => {
 	}
 
 	if (
-		(workflowPermissions.value.delete === true && !props.readOnly && !props.isArchived) ||
+		(usersStore?.isInstanceOwner &&
+			workflowPermissions.value.delete === true &&
+			!props.readOnly &&
+			!props.isArchived) ||
 		isNewWorkflow.value
 	) {
 		actions.unshift({
@@ -195,7 +202,10 @@ const workflowMenuItems = computed<ActionDropdownItem[]>(() => {
 		);
 	}
 
-	if (hasPermission(['rbac'], { rbac: { scope: 'sourceControl:push' } })) {
+	if (
+		hasPermission(['rbac'], { rbac: { scope: 'sourceControl:push' } }) &&
+		usersStore?.isInstanceOwner
+	) {
 		actions.push({
 			id: WORKFLOW_MENU_ACTIONS.PUSH,
 			label: locale.baseText('menuActions.push'),
@@ -210,10 +220,13 @@ const workflowMenuItems = computed<ActionDropdownItem[]>(() => {
 	actions.push({
 		id: WORKFLOW_MENU_ACTIONS.SETTINGS,
 		label: locale.baseText('generic.settings'),
-		disabled: !onWorkflowPage.value || isNewWorkflow.value,
+		disabled: !onWorkflowPage.value || isNewWorkflow.value || !usersStore?.isInstanceOwner,
 	});
 
-	if ((workflowPermissions.value.delete === true && !props.readOnly) || isNewWorkflow.value) {
+	if (
+		usersStore?.isInstanceOwner &&
+		((workflowPermissions.value.delete === true && !props.readOnly) || isNewWorkflow.value)
+	) {
 		if (props.isArchived) {
 			actions.push({
 				id: WORKFLOW_MENU_ACTIONS.UNARCHIVE,
@@ -702,10 +715,15 @@ const onBreadcrumbsItemSelected = (item: PathItem) => {
 					:current-folder="currentFolderForBreadcrumbs"
 					:current-folder-as-link="true"
 					@item-selected="onBreadcrumbsItemSelected"
+					:read-only="!usersStore?.isInstanceOwner"
+					:disabled="!usersStore?.isInstanceOwner"
 				>
 					<template #append>
 						<span
-							v-if="projectsStore.currentProject ?? projectsStore.personalProject"
+							v-if="
+								usersStore?.isInstanceOwner &&
+								(projectsStore.currentProject ?? projectsStore.personalProject)
+							"
 							:class="$style['path-separator']"
 							>/</span
 						>
@@ -722,8 +740,8 @@ const onBreadcrumbsItemSelected = (item: PathItem) => {
 									? WORKFLOW_NAME_MAX_WIDTH_SMALL_SCREENS
 									: WORKFLOW_NAME_MAX_WIDTH_WIDE_SCREENS
 							"
-							:read-only="readOnly || isArchived || (!isNewWorkflow && !workflowPermissions.update)"
-							:disabled="readOnly || isArchived || (!isNewWorkflow && !workflowPermissions.update)"
+							:read-only="!usersStore?.isInstanceOwner"
+							:disabled="!usersStore?.isInstanceOwner"
 							@update:model-value="onNameSubmit"
 						/>
 					</template>
@@ -731,7 +749,7 @@ const onBreadcrumbsItemSelected = (item: PathItem) => {
 			</template>
 		</BreakpointsObserver>
 		<span class="tags" data-test-id="workflow-tags-container">
-			<template v-if="settingsStore.areTagsEnabled">
+			<template v-if="usersStore?.isInstanceOwner">
 				<WorkflowTagsDropdown
 					v-if="
 						isTagsEditEnabled &&
@@ -793,7 +811,7 @@ const onBreadcrumbsItemSelected = (item: PathItem) => {
 				/>
 			</span>
 			<EnterpriseEdition :features="[EnterpriseEditionFeature.Sharing]">
-				<div :class="$style.group">
+				<div v-if="usersStore?.isInstanceOwner" :class="$style.group">
 					<CollaborationPane v-if="!isNewWorkflow" />
 					<N8nButton
 						type="secondary"
@@ -803,7 +821,7 @@ const onBreadcrumbsItemSelected = (item: PathItem) => {
 						{{ i18n.baseText('workflowDetails.share') }}
 					</N8nButton>
 				</div>
-				<template #fallback>
+				<template v-if="!usersStore?.isInstanceOwner" #fallback>
 					<N8nTooltip>
 						<N8nButton type="secondary" :class="['mr-2xs', $style.disabledShareButton]">
 							{{ i18n.baseText('workflowDetails.share') }}

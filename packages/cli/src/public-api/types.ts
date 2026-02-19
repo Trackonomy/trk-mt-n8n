@@ -85,6 +85,7 @@ export declare namespace WorkflowRequest {
 	type GetTags = Get;
 	type UpdateTags = AuthenticatedRequest<{ id: string }, {}, TagEntity[]>;
 	type Transfer = AuthenticatedRequest<{ id: string }, {}, { destinationProjectId: string }>;
+	type GetWorkflowByNodeMetadata = AuthenticatedRequest<{ metadata: string }, {}, {}, {}>;
 }
 
 export declare namespace UserRequest {
@@ -134,7 +135,7 @@ export declare namespace CredentialRequest {
 	type Create = AuthenticatedRequest<
 		{},
 		{},
-		{ type: string; name: string; data: ICredentialDataDecryptedObject },
+		{ type: string; name: string; data: ICredentialDataDecryptedObject; projectId?: string },
 		{}
 	>;
 

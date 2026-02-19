@@ -8,7 +8,8 @@ npm-debug.log*
 yarn.lock
 google-generated-credentials.json
 _START_PACKAGE
-.env
+packages/cli/bin/.env
+packages/cli/bin/.env.example
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.default.json

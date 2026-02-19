@@ -13,7 +13,7 @@ const paths = {
 	mockApiDataPath: path.join(__dirname, 'mock-api'),
 };
 
-const N8N_ENCRYPTION_KEY = 'very-secret-encryption-key';
+const N8N_ENCRYPTION_KEY = 'GpGKESMJQhypu3fMYmmba9LJMvD55ukQ';
 
 async function main() {
 	const [n8nSetupToUse] = argv._;

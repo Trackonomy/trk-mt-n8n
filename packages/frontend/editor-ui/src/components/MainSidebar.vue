@@ -78,34 +78,34 @@ const showWhatsNewNotification = computed(
 );
 
 const mainMenuItems = computed<IMenuItem[]>(() => [
-	{
-		id: 'cloud-admin',
-		position: 'bottom',
-		label: 'Admin Panel',
-		icon: 'cloud',
-		available: settingsStore.isCloudDeployment && hasPermission(['instanceOwner']),
-	},
-	{
-		// Link to in-app templates, available if custom templates are enabled
-		id: 'templates',
-		icon: 'package-open',
-		label: i18n.baseText('mainSidebar.templates'),
-		position: 'bottom',
-		available: settingsStore.isTemplatesEnabled && templatesStore.hasCustomTemplatesHost,
-		route: { to: { name: VIEWS.TEMPLATES } },
-	},
-	{
-		// Link to website templates, available if custom templates are not enabled
-		id: 'templates',
-		icon: 'package-open',
-		label: i18n.baseText('mainSidebar.templates'),
-		position: 'bottom',
-		available: settingsStore.isTemplatesEnabled && !templatesStore.hasCustomTemplatesHost,
-		link: {
-			href: templatesStore.websiteTemplateRepositoryURL,
-			target: '_blank',
-		},
-	},
+	// {
+	// 	id: 'cloud-admin',
+	// 	position: 'bottom',
+	// 	label: 'Admin Panel',
+	// 	icon: 'cloud',
+	// 	available: settingsStore.isCloudDeployment && hasPermission(['instanceOwner']),
+	// },
+	// {
+	// 	// Link to in-app templates, available if custom templates are enabled
+	// 	id: 'templates',
+	// 	icon: 'package-open',
+	// 	label: i18n.baseText('mainSidebar.templates'),
+	// 	position: 'bottom',
+	// 	available: settingsStore.isTemplatesEnabled && templatesStore.hasCustomTemplatesHost,
+	// 	route: { to: { name: VIEWS.TEMPLATES } },
+	// },
+	// {
+	// 	// Link to website templates, available if custom templates are not enabled
+	// 	id: 'templates',
+	// 	icon: 'package-open',
+	// 	label: i18n.baseText('mainSidebar.templates'),
+	// 	position: 'bottom',
+	// 	available: settingsStore.isTemplatesEnabled && !templatesStore.hasCustomTemplatesHost,
+	// 	link: {
+	// 		href: templatesStore.websiteTemplateRepositoryURL,
+	// 		target: '_blank',
+	// 	},
+	// },
 	{
 		id: 'variables',
 		icon: 'variable',
@@ -123,106 +123,106 @@ const mainMenuItems = computed<IMenuItem[]>(() => [
 			settingsStore.isModuleActive('insights') &&
 			hasPermission(['rbac'], { rbac: { scope: 'insights:list' } }),
 	},
-	{
-		id: 'help',
-		icon: 'circle-help',
-		label: i18n.baseText('mainSidebar.help'),
-		position: 'bottom',
-		children: [
-			{
-				id: 'quickstart',
-				icon: 'video',
-				label: i18n.baseText('mainSidebar.helpMenuItems.quickstart'),
-				link: {
-					href: 'https://www.youtube.com/watch?v=4cQWJViybAQ',
-					target: '_blank',
-				},
-			},
-			{
-				id: 'docs',
-				icon: 'book',
-				label: i18n.baseText('mainSidebar.helpMenuItems.documentation'),
-				link: {
-					href: 'https://docs.n8n.io?utm_source=n8n_app&utm_medium=app_sidebar',
-					target: '_blank',
-				},
-			},
-			{
-				id: 'forum',
-				icon: 'users',
-				label: i18n.baseText('mainSidebar.helpMenuItems.forum'),
-				link: {
-					href: 'https://community.n8n.io?utm_source=n8n_app&utm_medium=app_sidebar',
-					target: '_blank',
-				},
-			},
-			{
-				id: 'examples',
-				icon: 'graduation-cap',
-				label: i18n.baseText('mainSidebar.helpMenuItems.course'),
-				link: {
-					href: 'https://docs.n8n.io/courses/',
-					target: '_blank',
-				},
-			},
-			{
-				id: 'report-bug',
-				icon: 'bug',
-				label: i18n.baseText('mainSidebar.helpMenuItems.reportBug'),
-				link: {
-					href: getReportingURL(),
-					target: '_blank',
-				},
-			},
-			{
-				id: 'about',
-				icon: 'info',
-				label: i18n.baseText('mainSidebar.aboutN8n'),
-				position: 'bottom',
-			},
-		],
-	},
-	{
-		id: 'whats-new',
-		icon: 'bell',
-		notification: showWhatsNewNotification.value,
-		label: i18n.baseText('mainSidebar.whatsNew'),
-		position: 'bottom',
-		available: versionsStore.hasVersionUpdates || versionsStore.whatsNewArticles.length > 0,
-		children: [
-			...versionsStore.whatsNewArticles.map(
-				(article) =>
-					({
-						id: `whats-new-article-${article.id}`,
-						label: article.title,
-						size: 'small',
-						customIconSize: 'small',
-						icon: {
-							type: 'emoji',
-							value: '•',
-							color: !versionsStore.isWhatsNewArticleRead(article.id) ? 'primary' : 'text-light',
-						},
-					}) satisfies IMenuItem,
-			),
-			{
-				id: 'full-changelog',
-				icon: 'external-link',
-				label: i18n.baseText('mainSidebar.whatsNew.fullChangelog'),
-				link: {
-					href: RELEASE_NOTES_URL,
-					target: '_blank',
-				},
-				size: 'small',
-				customIconSize: 'small',
-			},
-			{
-				id: 'version-upgrade-cta',
-				component: VersionUpdateCTA,
-				available: versionsStore.hasVersionUpdates,
-				props: {},
-			},
-		],
-	},
+	// {
+	// 	id: 'help',
+	// 	icon: 'circle-help',
+	// 	label: i18n.baseText('mainSidebar.help'),
+	// 	position: 'bottom',
+	// 	children: [
+	// 		{
+	// 			id: 'quickstart',
+	// 			icon: 'video',
+	// 			label: i18n.baseText('mainSidebar.helpMenuItems.quickstart'),
+	// 			link: {
+	// 				href: 'https://www.youtube.com/watch?v=4cQWJViybAQ',
+	// 				target: '_blank',
+	// 			},
+	// 		},
+	// 		{
+	// 			id: 'docs',
+	// 			icon: 'book',
+	// 			label: i18n.baseText('mainSidebar.helpMenuItems.documentation'),
+	// 			link: {
+	// 				href: 'https://docs.n8n.io?utm_source=n8n_app&utm_medium=app_sidebar',
+	// 				target: '_blank',
+	// 			},
+	// 		},
+	// 		{
+	// 			id: 'forum',
+	// 			icon: 'users',
+	// 			label: i18n.baseText('mainSidebar.helpMenuItems.forum'),
+	// 			link: {
+	// 				href: 'https://community.n8n.io?utm_source=n8n_app&utm_medium=app_sidebar',
+	// 				target: '_blank',
+	// 			},
+	// 		},
+	// 		{
+	// 			id: 'examples',
+	// 			icon: 'graduation-cap',
+	// 			label: i18n.baseText('mainSidebar.helpMenuItems.course'),
+	// 			link: {
+	// 				href: 'https://docs.n8n.io/courses/',
+	// 				target: '_blank',
+	// 			},
+	// 		},
+	// 		{
+	// 			id: 'report-bug',
+	// 			icon: 'bug',
+	// 			label: i18n.baseText('mainSidebar.helpMenuItems.reportBug'),
+	// 			link: {
+	// 				href: getReportingURL(),
+	// 				target: '_blank',
+	// 			},
+	// 		},
+	// 		{
+	// 			id: 'about',
+	// 			icon: 'info',
+	// 			label: i18n.baseText('mainSidebar.aboutN8n'),
+	// 			position: 'bottom',
+	// 		},
+	// 	],
+	// },
+	// {
+	// 	id: 'whats-new',
+	// 	icon: 'bell',
+	// 	notification: showWhatsNewNotification.value,
+	// 	label: i18n.baseText('mainSidebar.whatsNew'),
+	// 	position: 'bottom',
+	// 	available: versionsStore.hasVersionUpdates || versionsStore.whatsNewArticles.length > 0,
+	// 	children: [
+	// 		...versionsStore.whatsNewArticles.map(
+	// 			(article) =>
+	// 				({
+	// 					id: `whats-new-article-${article.id}`,
+	// 					label: article.title,
+	// 					size: 'small',
+	// 					customIconSize: 'small',
+	// 					icon: {
+	// 						type: 'emoji',
+	// 						value: '•',
+	// 						color: !versionsStore.isWhatsNewArticleRead(article.id) ? 'primary' : 'text-light',
+	// 					},
+	// 				}) satisfies IMenuItem,
+	// 		),
+	// 		{
+	// 			id: 'full-changelog',
+	// 			icon: 'external-link',
+	// 			label: i18n.baseText('mainSidebar.whatsNew.fullChangelog'),
+	// 			link: {
+	// 				href: RELEASE_NOTES_URL,
+	// 				target: '_blank',
+	// 			},
+	// 			size: 'small',
+	// 			customIconSize: 'small',
+	// 		},
+	// 		{
+	// 			id: 'version-upgrade-cta',
+	// 			component: VersionUpdateCTA,
+	// 			available: versionsStore.hasVersionUpdates,
+	// 			props: {},
+	// 		},
+	// 	],
+	// },
 ]);
 const createBtn = ref<InstanceType<typeof N8nNavigationDropdown>>();
 
@@ -368,6 +368,7 @@ onClickOutside(createBtn as Ref<VueInstance>, () => {
 			['side-menu']: true,
 			[$style.sideMenu]: true,
 			[$style.sideMenuCollapsed]: isCollapsed,
+			[$style.hidden]: !usersStore.isInstanceOwner,
 		}"
 	>
 		<div
@@ -527,6 +528,9 @@ onClickOutside(createBtn as Ref<VueInstance>, () => {
 </template>
 
 <style lang="scss" module>
+.hidden {
+	display: none !important;
+}
 .sideMenu {
 	display: grid;
 	position: relative;

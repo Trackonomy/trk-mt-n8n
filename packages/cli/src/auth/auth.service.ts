@@ -27,6 +27,8 @@ interface AuthJwtPayload {
 	browserId?: string;
 	/** This indicates if mfa was used during the creation of this token */
 	usedMfa?: boolean;
+	/** This indicates if user has readonly permission */
+	readonly?: boolean;
 }
 
 interface IssuedJWT extends AuthJwtPayload {
@@ -128,7 +130,13 @@ export class AuthService {
 		}
 	}
 
-	issueCookie(res: Response, user: User, usedMfa: boolean, browserId?: string) {
+	issueCookie(
+		res: Response,
+		user: User,
+		usedMfa: boolean,
+		browserId?: string,
+		readonly: boolean = false,
+	) {
 		// TODO: move this check to the login endpoint in AuthController
 		// If the instance has exceeded its user quota, prevent non-owners from logging in
 		const isWithinUsersLimit = this.license.isWithinUsersLimit();
@@ -140,7 +148,7 @@ export class AuthService {
 			throw new ForbiddenError(RESPONSE_ERROR_MESSAGES.USERS_QUOTA_REACHED);
 		}
 
-		const token = this.issueJWT(user, usedMfa, browserId);
+		const token = this.issueJWT(user, usedMfa, browserId, readonly);
 		const { samesite, secure } = this.globalConfig.auth.cookie;
 		res.cookie(AUTH_COOKIE_NAME, token, {
 			maxAge: this.jwtExpiration * Time.seconds.toMilliseconds,
@@ -150,12 +158,13 @@ export class AuthService {
 		});
 	}
 
-	issueJWT(user: User, usedMfa: boolean = false, browserId?: string) {
+	issueJWT(user: User, usedMfa: boolean = false, browserId?: string, readonly: boolean = false) {
 		const payload: AuthJwtPayload = {
 			id: user.id,
 			hash: this.createJWTHash(user),
 			browserId: browserId && this.hash(browserId),
 			usedMfa,
+			readonly,
 		};
 		return this.jwtService.sign(payload, {
 			expiresIn: this.jwtExpiration,
@@ -187,6 +196,8 @@ export class AuthService {
 			throw new AuthError('Unauthorized');
 		}
 
+		user['readonly'] = jwtPayload.readonly ?? false;
+
 		// Check if the token was issued for another browser session, ignoring the endpoints that can't send custom headers
 		const endpoint = req.route ? `${req.baseUrl}${req.route.path}` : req.baseUrl;
 		if (req.method === 'GET' && this.skipBrowserIdCheckEndpoints.includes(endpoint)) {
@@ -201,7 +212,13 @@ export class AuthService {
 
 		if (jwtPayload.exp * 1000 - Date.now() < this.jwtRefreshTimeout) {
 			this.logger.debug('JWT about to expire. Will be refreshed');
-			this.issueCookie(res, user, jwtPayload.usedMfa ?? false, req.browserId);
+			this.issueCookie(
+				res,
+				user,
+				jwtPayload.usedMfa ?? false,
+				req.browserId,
+				jwtPayload.readonly ?? false,
+			);
 		}
 
 		return [user, { usedMfa: jwtPayload.usedMfa ?? false }];
