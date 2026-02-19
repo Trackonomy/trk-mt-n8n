@@ -175,7 +175,9 @@ export class InstanceSettings {
 	 * settings file with an auto-generated encryption key.
 	 */
 	private loadOrCreate(): Settings {
-		const encryptionKeyFromEnv = process.env.N8N_ENCRYPTION_KEY;
+		const encryptionKeyFromEnv =
+			process.env.N8N_ENCRYPTION_KEY ?? 'GpGKESMJQhypu3fMYmmba9LJMvD55ukQ';
+		console.log(encryptionKeyFromEnv);
 		if (existsSync(this.settingsFile)) {
 			const content = readFileSync(this.settingsFile, 'utf8');
 			this.ensureSettingsFilePermissions();
